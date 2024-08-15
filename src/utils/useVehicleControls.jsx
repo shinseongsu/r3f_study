@@ -1,20 +1,23 @@
 import { useEffect, useState } from "react";
+import { stage1 } from "./atom";
+import { useRecoilValue } from "recoil";
 
 export const useVehicleControls = (vehicleApi, chassisApi) => {
     const [controls, setControls] = useState({});
+    const motionStage = useRecoilValue(stage1);
 
     useEffect(()=>{
         const KeDownPressHandler = (e) => {
             setControls((controls) => ({ 
                 ...controls, [e.key]: true 
             }));
-            console.log('Down',e)
+            // console.log('Down',e)
         }
         const KeUpPressHandler = (e) => {
             setControls((controls) => ({ 
                 ...controls, [e.key]: false,
             }));
-            console.log('Up',e)
+            // console.log('Up',e)
         }
 
         window.addEventListener('keydown', KeDownPressHandler);
@@ -56,6 +59,22 @@ export const useVehicleControls = (vehicleApi, chassisApi) => {
         }
 
     }, [controls, vehicleApi, chassisApi]);
+
+    const onHandleHistory = () => {
+        const url = 'https://github.com/chuhongkyu'
+        window.open(url, "_blank")
+      }
+    
+    useEffect(() => {
+      if (controls.Enter && motionStage) {
+        onHandleHistory();
+        setControls((prevControls) => ({
+          ...prevControls,
+          Enter: false,
+        }));
+      }
+    }, [controls, motionStage]);
+    
 
     return controls;
 }

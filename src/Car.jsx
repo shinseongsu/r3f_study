@@ -8,16 +8,17 @@ import { useVehicleControls} from "./utils/useVehicleControls";
 import { useFrame } from "@react-three/fiber";
 import useFollowCam from "./utils/useFollowCam";
 import { Vector3 } from "three";
+import { CarBody } from "./components/CarBody";
+import { Wheel } from "./components/Wheel";
+import { useSetRecoilState } from "recoil"
+import { stage1, stage2 } from "./utils/atom";
 
 const Car = () => {
     const { pivot } = useFollowCam();
     const worldPosition = useMemo(() => new Vector3(), [])
+    const setStage1 = useSetRecoilState(stage1);
+    const setStage2 = useSetRecoilState(stage2);
 
-    const chassisBodyValue = useControls('chassisBody', {
-      width: { value: 0.16, min: 0, max: 1,},
-      height:  { value: 0.12, min: 0, max: 1,},
-      front: { value: 0.17, min: 0, max: 1,},
-    })
     const position = [0, 0.5, 0];
 
     let width, height, front, mass, wheelRadius;
@@ -35,6 +36,7 @@ const Car = () => {
         position,
         mass: mass,
         rotation: [0,Math.PI,0],
+        collisionFilterGroup: 5,
         shapes: [
           {
             args: chassisBodyArgs,
@@ -69,19 +71,39 @@ const Car = () => {
       pivot.position.lerp(worldPosition, 0.9)
     }
 
+    const makeStage1 = () => {
+      const chassisPosition = new Vector3().setFromMatrixPosition(chassisBody.current.matrixWorld);
+      if ( Math.abs(3 - chassisPosition.x) < 0.7 && Math.abs(4.9 - chassisPosition.z) < 0.7){
+        setStage1(true);
+      }else{
+        setStage1(false);
+      }
+    }
+
+    const makeStage2 = () => {
+      const chassisPosition = new Vector3().setFromMatrixPosition(chassisBody.current.matrixWorld);
+      if ( Math.abs(-3 - chassisPosition.x) < 0.8 && Math.abs(5.5 - chassisPosition.z) < 0.8){
+        setStage2(true);
+      }else{
+        setStage2(false);
+      }
+    }
+
     useFrame(()=>{
       makeFollowCam()
+      makeStage1()
+      makeStage2()
     })
 
     return(
         <group ref={vehicle}>
-            <group ref={chassisBody}>
-                <DummyCarBody width={chassisBodyValue.width} height={chassisBodyValue.height} front={chassisBodyValue.front * 2}/>
+            <group ref={chassisBody} name="chassisBody">
+                <CarBody />
             </group>
-            <DummyWheel wheelRef={wheels[0]} radius={wheelRadius}/>
-            <DummyWheel wheelRef={wheels[1]} radius={wheelRadius}/>
-            <DummyWheel wheelRef={wheels[2]} radius={wheelRadius}/>
-            <DummyWheel wheelRef={wheels[3]} radius={wheelRadius}/>
+            <Wheel wheelRef={wheels[0]} radius={wheelRadius}/>
+            <Wheel wheelRef={wheels[1]} radius={wheelRadius} rightSide={true}/>
+            <Wheel wheelRef={wheels[2]} radius={wheelRadius}/>
+            <Wheel wheelRef={wheels[3]} radius={wheelRadius} rightSide={true}/>
         </group>
     )
 }
