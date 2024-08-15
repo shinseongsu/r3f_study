@@ -3,7 +3,7 @@ import { Html, useTexture } from "@react-three/drei";
 import { useEffect, useRef, useState } from "react";
 
 const Banner = ({ position }) => {
-    const texture = useTexture(``);
+    const texture = useTexture(`/assets/images/enter.webp`);
     const [info, setInfo] = useState(false)
     const [ref] = useBox(() => ({
         args: [5, 2, 2],
